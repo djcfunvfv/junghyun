@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌿 생태와 환경 퀴즈 게임 🌿</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Jua', sans-serif; }
+
+  body {
+    background: linear-gradient(135deg, #9be15d, #00e3ae);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .quiz-container {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px;
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+    animation: fadeIn 1s ease;
+  }
+
+  h1 {
+    font-size: 2em;
+    margin-bottom: 30px;
+  }
+
+  .question {
+    font-size: 1.3em;
+    margin-bottom: 20px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  button.option {
+    background: rgba(255,255,255,0.8);
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #333;
+  }
+
+  button.option:hover {
+    background: #00e3ae;
+    color: white;
+    transform: scale(1.05);
+  }
+
+  #next-btn, #restart-btn {
+    margin-top: 30px;
+    padding: 15px 30px;
+    border: none;
+    background: #007f5f;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  #next-btn:hover, #restart-btn:hover {
+    background: #00b383;
+    transform: scale(1.05);
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+</style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <h1>🌏 생태와 환경 퀴즈 🌱</h1>
+  <div id="quiz">
+    <div class="question" id="question">문제가 여기에 표시됩니다.</div>
+    <div class="options" id="options"></div>
+    <button id="next-btn">다음</button>
+  </div>
+  <div id="result" style="display:none;">
+    <h2>결과</h2>
+    <p id="score"></p>
+    <button id="restart-btn">다시하기</button>
+  </div>
+</div>
+
+<script>
+const quizData = [
+  { question: "1. 지구 온난화의 주요 원인은 무엇일까요?",
+    options: ["이산화탄소 증가", "해양의 염분 증가", "오존층 두꺼워짐", "바람의 세기 증가"],
+    answer: 0 },
+  { question: "2. 플라스틱 쓰레기가 바다로 흘러가면 가장 먼저 피해를 입는 생물은?",
+    options: ["육상 포유류", "어류", "조류", "양서류"],
+    answer: 1 },
+  { question: "3. 다음 중 재생에너지가 아닌 것은?",
+    options: ["태양광", "풍력", "석유", "수력"],
+    answer: 2 },
+  { question: "4. 숲이 사라질 때 가장 먼저 영향을 받는 것은?",
+    options: ["대기질", "광합성량", "생물 다양성", "모두 해당"],
+    answer: 3 },
+  { question: "5. ‘탄소중립’이란 무엇을 의미하나요?",
+    options: ["이산화탄소를 모두 없애는 것", "배출량과 흡수량이 같은 상태", "산소를 더 많이 만드는 것", "자동차 사용 줄이기"],
+    answer: 1 },
+  { question: "6. 바다거북이 비닐봉지를 먹는 이유는?",
+    options: ["냄새가 좋아서", "먹이인 해파리로 착각해서", "색이 예뻐서", "배가 고파서"],
+    answer: 1 },
+  { question: "7. 기후 변화로 북극곰이 겪는 가장 큰 문제는?",
+    options: ["먹이 부족", "추위 심화", "개체 수 증가", "눈보라"],
+    answer: 0 },
+  { question: "8. 일회용품 사용을 줄이는 행동은?",
+    options: ["텀블러 사용", "비닐봉투 이용", "플라스틱 컵 사용", "캔 음료 마시기"],
+    answer: 0 },
+  { question: "9. 지구의 평균기온 상승을 1.5도 이내로 막자는 목표를 담은 협약은?",
+    options: ["파리협정", "교토의정서", "몬트리올의정서", "리우선언"],
+    answer: 0 },
+  { question: "10. 생태계의 건강성을 유지하는 데 가장 중요한 요소는?",
+    options: ["생물 다양성", "기온", "인간의 개입", "비"],
+    answer: 0 }
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+const questionEl = document.getElementById("question");
+const optionsEl = document.getElementById("options");
+const nextBtn = document.getElementById("next-btn");
+const resultEl = document.getElementById("result");
+const scoreEl = document.getElementById("score");
+const restartBtn = document.getElementById("restart-btn");
+
+function loadQuestion() {
+  const q = quizData[currentQuestion];
+  questionEl.textContent = q.question;
+  optionsEl.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.classList.add("option");
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(i);
+    optionsEl.appendChild(btn);
+  });
+}
+
+function checkAnswer(selected) {
+  const correct = quizData[currentQuestion].answer;
+  const buttons = document.querySelectorAll(".option");
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === correct) b.style.background = "#00b383";
+    else if (i === selected) b.style.background = "#ff6b6b";
+  });
+  if (selected === correct) score++;
+}
+
+nextBtn.onclick = () => {
+  if (currentQuestion < quizData.length - 1) {
+    currentQuestion++;
+    loadQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById("quiz").style.display = "none";
+  resultEl.style.display = "block";
+  scoreEl.textContent = `당신의 점수는 ${score} / ${quizData.length}점 입니다!`;
+}
+
+restartBtn.onclick = () => {
+  currentQuestion = 0;
+  score = 0;
+  resultEl.style.display = "none";
+  document.getElementById("quiz").style.display = "block";
+  loadQuestion();
+};
+
+loadQuestion();
+</script>
+</body>
+</html>
